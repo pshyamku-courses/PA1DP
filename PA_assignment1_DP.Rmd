@@ -1,0 +1,57 @@
+---
+title: "Leaftlet - Boston Housing 1970"
+author: "pshyamku-courses"
+date: "9/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Project Objectives
+
+Create a web page using R Markdown that features a map created with Leaflet.
+Host your webpage on either GitHub Pages, RPubs, or NeoCities.
+
+## Synopsis
+We create a map of Boston city with Census data from 1970. In the map, we try to analyze which parts of Boston have the highest proportion of owner occupied homes. We cluster them and shade them based on this proportion. (See references below for data source and citations)
+
+```{r cars}
+suppressWarnings(library(leaflet))
+suppressWarnings(library(mlbench)) # Dataset is in this library
+
+data("BostonHousing2")
+historic_boston <- data.frame(townname = BostonHousing2$town, historic_homes = BostonHousing2$age, 
+                              latitude = BostonHousing2$lat, longitude = BostonHousing2$lon)
+pal <- colorNumeric(
+  palette = "YlGnBu",
+  domain = historic_boston$historic_homes
+)
+
+historic_boston %>%
+  leaflet() %>%
+  addTiles() %>%
+  addCircleMarkers(
+    color = pal(historic_boston$historic_homes),lng = historic_boston$longitude, 
+    lat = historic_boston$latitude
+  ) %>%
+  addLegend("bottomright", pal = pal, values = ~historic_homes,
+    title = "Proportion of owner-occupied",
+    labFormat = labelFormat(suffix = "%"),
+    opacity = 1
+  ) %>%
+  addCircleMarkers(
+    clusterOptions = markerClusterOptions(), popup = historic_boston$townname
+  )
+```
+
+## Data Source
+The original data have been taken from the UCI Repository Of Machine Learning Databases at http://www.ics.uci.edu/~mlearn/MLRepository.html, the corrected data have been taken from Statlib at http://lib.stat.cmu.edu/datasets/ 
+See Statlib and references there for details on the corrections. Both were converted to R format by Friedrich Leisch.
+
+## References
+* Harrison, D. and Rubinfeld, D.L. (1978). Hedonic prices and the demand for clean air. Journal of Environmental Economics and Management, 5, 81–102.
+* Gilley, O.W., and R. Kelley Pace (1996). On the Harrison and Rubinfeld Data. Journal of Environmental Economics and Management, 31, 403–405. [Provided corrections and examined censoring.]
+* Newman, D.J. & Hettich, S. & Blake, C.L. & Merz, C.J. (1998). UCI Repository of machine learning databases [http://www.ics.uci.edu/~mlearn/MLRepository.html]. Irvine, CA: University of California, Department of Information and Computer Science.
+* Pace, R. Kelley, and O.W. Gilley (1997). Using the Spatial Configuration of the Data to Improve Estimation. Journal of the Real Estate Finance and Economics, 14, 333–340. [Added georeferencing and spatial estimation.]
